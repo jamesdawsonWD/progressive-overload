@@ -14,6 +14,7 @@
 		muscleGroupList
 	} from '$lib/composables/exercises';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
+	import type { WorkoutPlan } from './types';
 
 	let modalOpen = false;
 	let selected: {
@@ -26,21 +27,8 @@
 		muscleGroup: null
 	};
 
-	interface Session {
-		workouts: (Workout & { sets: number })[];
-	}
-
-	interface Week {
-		rir: number;
-	}
-
-	interface WorkoutPlan {
-		sessions: Session[];
-		weeks: Week[];
-	}
-
-	let planName = '';
 	let workoutPlan: WorkoutPlan = {
+		name: '',
 		sessions: [],
 		weeks: []
 	};
@@ -57,6 +45,14 @@
 		workoutPlan.sessions = [...workoutPlan.sessions, { workouts: [] }];
 	}
 
+	function saveWorkoutPlan(workoutPlan: WorkoutPlan) {
+		try {
+			localStorage.setItem('workoutPlan', JSON.stringify(workoutPlan));
+			console.log('Workout plan saved successfully!');
+		} catch (error) {
+			console.error('Failed to save workout plan:', error);
+		}
+	}
 	function addWorkout(sessionIndex: number, workoutId: number | null, sets: number) {
 		if (!workoutId) {
 			throw new Error('Workout not provided');
@@ -96,7 +92,7 @@
 <h1 class="mb-16 text-2xl font-bold text-white">Create a Workout Plan</h1>
 <div class="mb-6">
 	<Label for="plan-name" class="mb-2 block">Plan Name</Label>
-	<Input bind:value={planName} id="plan-name" placeholder="Enter plan name" />
+	<Input bind:value={workoutPlan.name} id="plan-name" placeholder="Enter plan name" />
 </div>
 
 <Button on:click={() => addWeek(1)} class="mb-6">Add week</Button>
@@ -217,6 +213,4 @@
 		</div>
 	{/each}
 </div>
-<Button class="mb-6">Create Plan</Button>
-
-{JSON.stringify(workoutPlan)}
+<Button class="mb-6" on:click={() => saveWorkoutPlan(workoutPlan)}>Create Plan</Button>
