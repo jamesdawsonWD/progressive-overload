@@ -1,3 +1,5 @@
+import { capitalize } from "$lib/utils";
+
 // src/lib/exercises.ts
 export interface Workout {
     id: number;
@@ -21,6 +23,13 @@ enum MuscleGroup {
     FOREARMS = 11,
     ABS = 12,
 }
+
+export const muscleGroupList = Object.entries(MuscleGroup)
+    .filter(([key, value]) => typeof value === "number")
+    .map(([key, value]) => ({
+        value: value as number,
+        label: capitalize(key),
+    }));
 
 export const getMuscleGroupName = (id: number): string => {
     return MuscleGroup[id] || "Unknown Muscle Group";

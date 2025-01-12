@@ -4,27 +4,28 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
-	import Video from 'lucide-svelte/icons/video';
-
-	import { tick } from 'svelte';
 	import * as Select from '$lib/components/ui/select/index.js';
 
 	import {
 		availableWorkouts,
 		getMuscleGroupName,
 		getWorkoutById,
-		type Workout
+		type Workout,
+		muscleGroupList
 	} from '$lib/composables/exercises';
-	import { cn } from '$lib/utils';
 	import Badge from '$lib/components/ui/badge/badge.svelte';
 
-	let formModal = false;
-	let selected = {
-		week: 1,
-		session: 1,
-		workout_id: 1,
-		sets: 1
+	let modalOpen = false;
+	let selected: {
+		sets: number;
+		exercise: number | null;
+		muscleGroup: number | null;
+	} = {
+		sets: 3,
+		exercise: 1,
+		muscleGroup: null
 	};
+
 	interface Session {
 		workouts: (Workout & { sets: number })[];
 	}
@@ -39,9 +40,6 @@
 	}
 
 	let planName = '';
-	let weeks = 1;
-	let exercise = 1;
-	let sets = 1;
 	let workoutPlan: WorkoutPlan = {
 		sessions: [],
 		weeks: []
@@ -59,7 +57,11 @@
 		workoutPlan.sessions = [...workoutPlan.sessions, { workouts: [] }];
 	}
 
-	function addWorkout(sessionIndex: number, workoutId: number, sets: number) {
+	function addWorkout(sessionIndex: number, workoutId: number | null, sets: number) {
+		if (!workoutId) {
+			throw new Error('Workout not provided');
+		}
+
 		const selectedWorkout = getWorkoutById(workoutId);
 		if (!selectedWorkout) {
 			throw new Error('Exercise does not exist');
@@ -74,18 +76,19 @@
 		];
 
 		selected = {
-			week: 1,
-			session: 1,
-			workout_id: 1,
-			sets: 1
+			sets: 3,
+			exercise: null,
+			muscleGroup: null
 		};
-		formModal = false;
+
+		modalOpen = false;
 	}
 
 	const workouts = availableWorkouts.map((workout) => {
 		return {
 			label: workout.name,
-			value: workout.id
+			value: workout.id,
+			muscleGroup: workout.muscleGroupId
 		};
 	});
 </script>
@@ -94,11 +97,6 @@
 <div class="mb-6">
 	<Label for="plan-name" class="mb-2 block">Plan Name</Label>
 	<Input bind:value={planName} id="plan-name" placeholder="Enter plan name" />
-</div>
-
-<div class="mb-6">
-	<Label for="weeks" class="mb-2 block">Number of Weeks</Label>
-	<Input type="number" id="weeks" bind:value={weeks} min="1" />
 </div>
 
 <Button on:click={() => addWeek(1)} class="mb-6">Add week</Button>
@@ -126,17 +124,13 @@
 										<span>{workout.name}</span>
 										<p>x{workout.sets}</p>
 									</div>
-
-									<!-- <a class="no-underline" href={workout.youtubeId} target="_blank"
-										><Video class="size-6" /></a
-									> -->
 								</li>
 							{/each}
 						</ul>
 					</Card.Content>
 					<Card.Footer class="flex justify-between">
 						<Button variant="outline">Remove</Button>
-						<Dialog.Root>
+						<Dialog.Root bind:open={modalOpen}>
 							<Dialog.Trigger class={buttonVariants({ variant: 'default' })}
 								>Add workout</Dialog.Trigger
 							>
@@ -145,33 +139,72 @@
 									<Dialog.Title>Add workout</Dialog.Title>
 									<Dialog.Description>Select a workout and the number of sets.</Dialog.Description>
 								</Dialog.Header>
+
 								<div class="grid gap-4 py-4">
+									<div class="grid grid-cols-4 items-center gap-4">
+										<Label for="name" class="text-right">Muscle group</Label>
+
+										<Select.Root
+											portal={null}
+											onSelectedChange={(s) => {
+												selected.muscleGroup = s?.value as number;
+											}}
+										>
+											<Select.Trigger class="col-span-3">
+												<Select.Value placeholder="Select a muscle group" class="!text-left" />
+											</Select.Trigger>
+											<Select.Content>
+												<Select.Group class="h-80 overflow-y-scroll">
+													{#each muscleGroupList as muscleGroup}
+														<Select.Item value={muscleGroup.value} label={muscleGroup.label}
+															>{muscleGroup.label}</Select.Item
+														>
+													{/each}
+												</Select.Group>
+											</Select.Content>
+											<Select.Input name="muscleGroup" bind:value={selected.muscleGroup} />
+										</Select.Root>
+									</div>
 									<div class="grid grid-cols-4 items-center gap-4">
 										<Label for="name" class="text-right">Exercise</Label>
 
-										<Select.Root portal={null}>
+										<Select.Root
+											portal={null}
+											disabled={!selected.muscleGroup}
+											onSelectedChange={(s) => {
+												selected.exercise = s?.value as number;
+											}}
+										>
 											<Select.Trigger class="col-span-3">
 												<Select.Value placeholder="Select an exercise" />
 											</Select.Trigger>
 											<Select.Content>
 												<Select.Group class="h-80 overflow-y-scroll">
-													{#each workouts as workout}
+													{#each workouts.filter((w) => w.muscleGroup === selected.muscleGroup) as workout}
 														<Select.Item value={workout.value} label={workout.label}
 															>{workout.label}</Select.Item
 														>
 													{/each}
 												</Select.Group>
 											</Select.Content>
-											<Select.Input name="exercise" bind:value={exercise} />
+											<Select.Input name="exercise" bind:value={selected.exercise} />
 										</Select.Root>
 									</div>
 									<div class="grid grid-cols-4 items-center gap-4">
 										<Label for="sets" class="text-right">Sets</Label>
-										<Input id="sets" type="number" bind:value={sets} class="col-span-3" />
+										<Input
+											id="sets"
+											type="number"
+											disabled={!selected.muscleGroup}
+											bind:value={selected.sets}
+											class="col-span-3"
+										/>
 									</div>
 								</div>
 								<Dialog.Footer>
-									<Button type="submit" on:click={addWorkout(sessionIndex, exercise, sets)}
+									<Button
+										type="submit"
+										on:click={() => addWorkout(sessionIndex, selected.exercise, selected.sets)}
 										>Add workout</Button
 									>
 								</Dialog.Footer>
