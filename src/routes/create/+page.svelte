@@ -5,6 +5,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import Badge from '$lib/components/ui/badge/badge.svelte';
 
 	import {
 		availableWorkouts,
@@ -13,8 +14,8 @@
 		type Workout,
 		muscleGroupList
 	} from '$lib/composables/exercises';
-	import Badge from '$lib/components/ui/badge/badge.svelte';
 	import type { Session, Week, WorkoutPlan } from './types';
+	import { generateUUID } from '$lib/utils';
 
 	let modalOpen = false;
 	let selected: {
@@ -54,7 +55,7 @@
 	function addSession(weekIndex: number) {
 		workoutPlan.weeks[weekIndex].sessions = [
 			...workoutPlan.weeks[weekIndex].sessions,
-			{ workouts: [] as Workout[], completed: false } as Session
+			{ workouts: [] as Workout[], completed: false, id: generateUUID() } as Session
 		];
 	}
 

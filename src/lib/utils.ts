@@ -64,3 +64,7 @@ export const flyAndScale = (
 		easing: cubicOut,
 	};
 };
+
+export function generateUUID(): string {
+	return crypto.randomUUID();
+}
