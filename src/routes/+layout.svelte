@@ -10,7 +10,7 @@
 <Header />
 
 <ParaglideJS {i18n}>
-	<div class="mx-auto my-20 max-w-7xl px-4">
+	<div class="mx-auto my-8 max-w-fit px-4">
 		{@render children()}
 	</div>
 </ParaglideJS>

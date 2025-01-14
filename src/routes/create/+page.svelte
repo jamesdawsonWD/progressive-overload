@@ -94,7 +94,11 @@
 			...workoutPlan.weeks[weekIndex].sessions[sessionIndex].workouts,
 			{
 				...selectedWorkout,
-				sets
+				sets: Array.from({ length: sets }, () => ({
+					weight: '',
+					reps: '',
+					completed: false
+				}))
 			}
 		];
 
@@ -125,7 +129,7 @@
 	});
 </script>
 
-<h1 class="mb-16 text-2xl font-bold text-white">Create a Workout Plan</h1>
+<h1 class="mb-16 text-2xl font-bold">Create a Workout Plan</h1>
 <div class="mb-6">
 	<Label for="plan-name" class="mb-2 block">Plan Name</Label>
 	<Input bind:value={workoutPlan.name} id="plan-name" placeholder="Enter plan name" />
@@ -154,7 +158,7 @@
 									</div>
 									<div class="flex gap-2">
 										<span>{workout.name}</span>
-										<p>x{workout.sets}</p>
+										<p>x{workout.sets.length}</p>
 									</div>
 								</li>
 							{/each}

@@ -12,7 +12,7 @@
 	onMount(() => (isMenuOpen = false));
 </script>
 
-<header class="flex w-full items-center justify-between bg-zinc-900 px-6 py-4 md:px-20 md:py-4">
+<header class="flex w-full items-center justify-between px-6 py-4 md:px-20 md:py-4">
 	<!-- Logo -->
 	<h1 class="text-primary-600 text-xl font-bold">Progressive Overload</h1>
 

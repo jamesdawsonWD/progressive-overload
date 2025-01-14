@@ -7,10 +7,16 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { PageData } from './$types';
 	import { getMuscleGroupName } from '$lib/composables/exercises';
+	import { Input } from '$lib/components/ui/input';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import Checkbox from '$lib/components/ui/checkbox/checkbox.svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	let session: Session | null = null;
+	let workoutName: string | null = null;
+	let weekIndex: number | null = null;
+	let sessionIndex: number | null = null;
 
 	function getWorkoutPlan(): WorkoutPlan | null {
 		try {
@@ -28,10 +34,14 @@
 	$effect: {
 		const workoutPlan = getWorkoutPlan();
 		if (workoutPlan) {
-			for (const week of workoutPlan.weeks) {
-				const foundSession = week.sessions.find((s) => s.id === data.slug);
-				if (foundSession) {
-					session = foundSession;
+			for (const [index, week] of workoutPlan.weeks.entries()) {
+				const foundSessionIndex = week.sessions.findIndex((s) => s.id === data.slug);
+				if (foundSessionIndex !== -1) {
+					session = week.sessions[foundSessionIndex];
+					workoutName = workoutPlan.name;
+					weekIndex = index + 1;
+					sessionIndex = foundSessionIndex + 1;
+					break; // Exit the loop once the session is found
 				}
 			}
 		}
@@ -49,36 +59,111 @@
 			}
 		}
 	}
+	function updateWorkoutDetails(
+		weekIndex: number,
+		sessionIndex: number,
+		workoutIndex: number,
+		setIndex: number,
+		key: 'weight' | 'reps' | 'completed',
+		value: string | boolean
+	) {
+		if (session) {
+			const workoutPlan = getWorkoutPlan();
+			if (workoutPlan && weekIndex !== undefined) {
+				console.log(sessionIndex, workoutPlan.weeks[weekIndex].sessions[sessionIndex]);
+				const set =
+					workoutPlan.weeks[weekIndex].sessions[sessionIndex].workouts[workoutIndex].sets[setIndex];
+
+				console.log(set);
+				// Use type assertion to let TypeScript know the property exists
+				(set as Record<string, string | boolean>)[key] = value;
+
+				localStorage.setItem('workoutPlan', JSON.stringify(workoutPlan));
+			}
+		}
+	}
 </script>
 
 {#if session}
-	<h1 class="mb-16 text-2xl font-bold text-white">Session Details</h1>
-	<Card.Root>
-		<Card.Header>
-			<Card.Title>Session ID: {session.id}</Card.Title>
-			<Badge class="mt-2">{session.completed ? 'Completed' : 'Incomplete'}</Badge>
-		</Card.Header>
+	<h1 class="mb-4 text-2xl font-bold">Week {weekIndex} - Day {sessionIndex}</h1>
 
-		<Card.Content>
-			<ul class="mt-4 space-y-4">
-				{#each session.workouts as workout}
-					<li class="flex flex-col gap-2">
-						<Badge>{getMuscleGroupName(workout.muscleGroupId)}</Badge>
-						<h3>{workout.name}</h3>
+	<div class="space-y-2">
+		{#each session.workouts as workout, workoutIndex}
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>
+						<span>
+							<Badge>{getMuscleGroupName(workout.muscleGroupId)}</Badge>
+						</span>
+						<h3 class="text-xl font-semibold">{workout.name}</h3>
+					</Card.Title>
+				</Card.Header>
 
-						{#each Array.from({ length: workout.sets }, (_, index) => index + 1) as set}
-							<div>Set {set}</div>
+				<Card.Content>
+					<ul class="mt-4 space-y-4">
+						{#each workout.sets as set, setIndex}
+							<li class="flex flex-col gap-2">
+								<div class="flex items-center gap-4">
+									<div>
+										<Label for="weight-{setIndex}" class="text-right">Weight (kg)</Label>
+										<Input
+											id="weight-{setIndex}"
+											type="number"
+											value={set.weight}
+											on:input={(e) =>
+												updateWorkoutDetails(
+													weekIndex,
+													sessionIndex - 1,
+													workoutIndex,
+													setIndex,
+													'weight',
+													e.target.value
+												)}
+										/>
+									</div>
+									<div>
+										<Label for="reps-{setIndex}" class="text-right">Reps</Label>
+
+										<Input
+											id="reps-{setIndex}"
+											type="number"
+											value={set.reps}
+											on:input={(e) =>
+												updateWorkoutDetails(
+													weekIndex,
+													sessionIndex - 1,
+													workoutIndex,
+													setIndex,
+													'reps',
+													e.target.value
+												)}
+										/>
+									</div>
+									<div>
+										<Checkbox
+											id="completed-{setIndex}"
+											class="mt-6"
+											bind:checked={set.completed}
+											on:input={(e) =>
+												updateWorkoutDetails(
+													weekIndex,
+													sessionIndex,
+													workoutIndex,
+													setIndex,
+													'completed',
+													e.target.checked
+												)}
+										/>
+									</div>
+								</div>
+							</li>
 						{/each}
-					</li>
-				{/each}
-			</ul>
-		</Card.Content>
-
-		<Card.Footer class="mt-6 flex justify-between">
-			<Button variant="outline" on:click={markAsCompleted}>Mark as Completed</Button>
-			<Button variant="destructive">Delete Session</Button>
-		</Card.Footer>
-	</Card.Root>
-{:else}
-	<p>Loading session...</p>
+					</ul>
+				</Card.Content>
+				<Card.Footer class="mt-6 flex justify-end">
+					<Button on:click={markAsCompleted}>Mark as complete</Button>
+				</Card.Footer>
+			</Card.Root>
+		{/each}
+	</div>
 {/if}

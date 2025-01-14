@@ -1,7 +1,13 @@
 import type { Workout } from "$lib/composables/exercises";
 
 export interface Session {
-    workouts: (Workout & { sets: number })[];
+    workouts: (Workout & {
+        sets: {
+            weight: string;
+            reps: string;
+            completed: boolean;
+        }[];
+    })[];
     completed: boolean;
     id: string;
 }
