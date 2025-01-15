@@ -21,3 +21,7 @@ export interface WorkoutPlan {
     name: string;
     weeks: Week[];
 }
+
+export interface WorkoutPlans {
+    workoutPlans: WorkoutPlan[];
+}

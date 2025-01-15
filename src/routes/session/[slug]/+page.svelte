@@ -39,8 +39,8 @@
 				if (foundSessionIndex !== -1) {
 					session = week.sessions[foundSessionIndex];
 					workoutName = workoutPlan.name;
-					weekIndex = index + 1;
-					sessionIndex = foundSessionIndex + 1;
+					weekIndex = index;
+					sessionIndex = foundSessionIndex;
 					break; // Exit the loop once the session is found
 				}
 			}
@@ -85,7 +85,9 @@
 </script>
 
 {#if session}
-	<h1 class="mb-4 text-2xl font-bold">Week {weekIndex} - Day {sessionIndex}</h1>
+	<h1 class="mb-4 text-2xl font-bold">
+		Week {weekIndex + 1} - Day {sessionIndex + 1}
+	</h1>
 
 	<div class="space-y-2">
 		{#each session.workouts as workout, workoutIndex}
@@ -113,7 +115,7 @@
 											on:input={(e) =>
 												updateWorkoutDetails(
 													weekIndex,
-													sessionIndex - 1,
+													sessionIndex,
 													workoutIndex,
 													setIndex,
 													'weight',
@@ -131,7 +133,7 @@
 											on:input={(e) =>
 												updateWorkoutDetails(
 													weekIndex,
-													sessionIndex - 1,
+													sessionIndex,
 													workoutIndex,
 													setIndex,
 													'reps',
@@ -144,14 +146,14 @@
 											id="completed-{setIndex}"
 											class="mt-6"
 											bind:checked={set.completed}
-											on:input={(e) =>
+											onCheckedChange={(e) =>
 												updateWorkoutDetails(
 													weekIndex,
 													sessionIndex,
 													workoutIndex,
 													setIndex,
 													'completed',
-													e.target.checked
+													e
 												)}
 										/>
 									</div>

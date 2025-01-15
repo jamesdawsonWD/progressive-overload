@@ -31,8 +31,8 @@
 
 	<!-- Navigation Links (Hidden on Mobile by Default) -->
 	<nav class="hidden justify-center space-x-4 md:flex">
-		<a href="/current-workout" class="text-primary-600 hover:text-primary-500">Current Workout</a>
-		<a href="/workouts" class="text-primary-600 hover:text-primary-500">Workouts</a>
+		<a href="/" class="text-primary-600 hover:text-primary-500">Current Workout</a>
+		<a href="/plans" class="text-primary-600 hover:text-primary-500">Workouts</a>
 		<Button href="/create">Create</Button>
 	</nav>
 
@@ -41,8 +41,8 @@
 		<nav
 			class="absolute left-0 top-16 z-50 flex w-full flex-col items-center justify-center space-y-4 bg-zinc-900 py-4 md:hidden"
 		>
-			<a href="/current-workout" class="text-primary-600 hover:text-primary-500">Current Workout</a>
-			<a href="/workouts" class="text-primary-600 hover:text-primary-500">Workouts</a>
+			<a href="/" class="text-primary-600 hover:text-primary-500">Current Workout</a>
+			<a href="/plans" class="text-primary-600 hover:text-primary-500">Workouts</a>
 			<Button href="/create">Create</Button>
 		</nav>
 	{/if}

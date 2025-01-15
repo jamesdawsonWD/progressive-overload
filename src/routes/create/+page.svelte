@@ -61,7 +61,15 @@
 
 	function saveWorkoutPlan(workoutPlan: WorkoutPlan) {
 		try {
-			localStorage.setItem('workoutPlan', JSON.stringify(workoutPlan));
+			// Retrieve the existing plans object from localStorage or initialize an empty object
+			const existingPlans = JSON.parse(localStorage.getItem('plans') || '{}');
+
+			// Add or update the plan in the object
+			existingPlans[workoutPlan.name] = workoutPlan;
+
+			// Save the updated object back to localStorage
+			localStorage.setItem('plans', JSON.stringify(existingPlans));
+
 			console.log('Workout plan saved successfully!');
 		} catch (error) {
 			console.error('Failed to save workout plan:', error);
